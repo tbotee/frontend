@@ -12,26 +12,26 @@ const EmailSchema = z.object({
 const EmailListResponseSchema = z.object({
     success: z.boolean(),
     data: z.array(z.object({
-      id: z.union([z.string(), z.number()]),         // allow number or string
+      id: z.union([z.string(), z.number()]),         
       to: z.string().email(),
-      cc: z.string().nullable().optional(),          // allow null
-      bcc: z.string().nullable().optional(),         // allow null
+      cc: z.string().nullable().optional(),          
+      bcc: z.string().nullable().optional(),        
       subject: z.string(),
       body: z.string(),
-      created_at: z.union([z.string(), z.number()]), // allow number or string
+      created_at: z.union([z.string(), z.number()])
     })),
   });
 
 const EmailResponseSchema = z.object({
   success: z.boolean(),
   data: z.object({
-    id: z.string(),
+    id: z.union([z.string(), z.number()]).transform(val => String(val)),
     to: z.string(),
-    cc: z.string().optional(),
-    bcc: z.string().optional(),
+    cc: z.union([z.string(), z.null(), z.undefined()]).optional().transform(val => val || ''),
+    bcc: z.union([z.string(), z.null(), z.undefined()]).optional().transform(val => val || ''),
     subject: z.string(),
     body: z.string(),
-    created_at: z.string(),
+    created_at: z.union([z.string(), z.number(), z.undefined()]).optional().transform(val => val ? String(val) : new Date().toISOString()),
   }),
 });
 
@@ -40,20 +40,19 @@ class EmailService {
     this.baseUrl = baseUrl || process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
   }
 
-  // Validate email list
   validateEmailList(emailList) {
-    if (!emailList.trim()) return true; // Empty is valid
+    if (!emailList.trim()) return true;
     const emails = emailList.split(',').map(email => email.trim());
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emails.every(email => emailRegex.test(email));
   }
 
-  // Validate compose data
+
   validateComposeData(composeData) {
     try {
       EmailSchema.parse(composeData);
       
-      // Additional validation for CC and BCC
+
       if (composeData.cc && !this.validateEmailList(composeData.cc)) {
         throw new Error('CC must contain valid email addresses separated by commas');
       }
@@ -73,13 +72,12 @@ class EmailService {
       } else if (error instanceof Error) {
         return { isValid: false, errors: { general: error.message } };
       } else {
-        // unexpected case
         return { isValid: false, errors: { general: "Unknown validation error" } };
       }
     }
   }
 
-  // Fetch emails from backend
+
   async fetchEmails() {
     try {
       const response = await fetch(`${this.baseUrl}/emails`);
@@ -90,7 +88,6 @@ class EmailService {
       
       const jsonResponse = await response.json();
       
-      // Validate response structure
       const validatedData = EmailListResponseSchema.parse(jsonResponse);
       
       if (!validatedData.success) {
@@ -112,10 +109,8 @@ class EmailService {
     }
   }
 
-  // Send email
   async sendEmail(composeData) {
     try {
-      // Validate compose data first
       const validation = this.validateComposeData(composeData);
       if (!validation.isValid) {
         return {
@@ -138,7 +133,6 @@ class EmailService {
 
       const jsonResponse = await response.json();
       
-      // Validate response structure
       const validatedData = EmailResponseSchema.parse(jsonResponse);
       
       if (!validatedData.success) {
@@ -161,7 +155,6 @@ class EmailService {
   }
 }
 
-// Create singleton instance
 const emailService = new EmailService();
 
 export default emailService;

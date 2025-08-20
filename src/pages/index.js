@@ -9,8 +9,7 @@ import EmailDetail from '../components/EmailDetail';
 import ComposeDialog from '../components/ComposeDialog';
 import AiPromptDialog from '../components/AiPromptDialog';
 import emailService from '../services/emailService';
-
-const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
+import aiService from '../services/aiService';
 
 
 export default function Home() {
@@ -41,7 +40,6 @@ export default function Home() {
     body: '',
   });
 
-  // Fetch emails from backend
   const fetchEmails = async () => {
     try {
       setLoading(true);
@@ -71,6 +69,13 @@ export default function Home() {
     setComposeOpen(false);
     setIsGenerating(false);
     setValidationErrors({});
+    setCompose({
+      to: '',
+      cc: '',
+      bcc: '',
+      subject: '',
+      body: ''
+    });
   };
 
   const handleSend = async () => {
@@ -81,7 +86,6 @@ export default function Home() {
       const result = await emailService.sendEmail(compose);
 
       if (result.success) {
-        // Reset compose form
         setCompose({
           to: '',
           cc: '',
@@ -89,8 +93,10 @@ export default function Home() {
           subject: '',
           body: ''
         });
-        await fetchEmails();
+        setValidationErrors({});
         setComposeOpen(false);
+        await fetchEmails();
+        
       } else {
         if (result.validationErrors) {
           setValidationErrors(result.validationErrors);
@@ -106,45 +112,23 @@ export default function Home() {
   };
 
 
-  async function getAssistantType() {
-    const routeResult = await fetch('/api/ai/route', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: aiPrompt }),
-    });
-
-    const routeAssistant = await routeResult.json();
-    return routeAssistant.assistant;
-  }
-
-  async function getEmail(assistantType, aiPrompt){
-    const emailResult = await fetch(`/api/ai/generate?assistant=${assistantType}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt: aiPrompt }),
-    });
-
-    const email = await emailResult.json();
-
-    setCompose((c) => ({ 
-      ...c, 
-      subject: email.subject || '', 
-      body: email.body || '' 
-    }));
-  }
-
-
   async function handleAiGenerate() {
     setIsGenerating(true);
     try {
-      const assistantType = await getAssistantType();
-      if (assistantType === 'sales' || assistantType === 'followup') {
-        await getEmail(assistantType, aiPrompt);
+      const result = await aiService.handleAiGenerate(aiPrompt);
+      
+      if (result.success) {
+        setCompose((c) => ({ 
+          ...c, 
+          subject: result.data.subject, 
+          body: result.data.body 
+        }));
       } else {
-        setError('Invalid assistant type');
+        setError(result.error);
       }
     } catch (err) {
-      console.error(err);
+      console.error('AI generation error:', err);
+      setError('Failed to generate email with AI');
     } finally {
       setIsGenerating(false);
       setAiPromptOpen(false);
@@ -169,7 +153,6 @@ export default function Home() {
           emails={emails}
         />
 
-        {/* Compose FAB */}
         <Fab
           color="primary"
           sx={{ position: 'fixed', right: 24, bottom: 24 }}
@@ -179,7 +162,6 @@ export default function Home() {
           <AddIcon />
         </Fab>
 
-        {/* Compose dialog */}
         <ComposeDialog
           open={composeOpen}
           onClose={handleCloseCompose}
@@ -192,7 +174,6 @@ export default function Home() {
           onAiPromptOpen={() => setAiPromptOpen(true)}
         />
 
-        {/* AI prompt dialog */}
         <AiPromptDialog
           open={aiPromptOpen}
           onClose={() => setAiPromptOpen(false)}

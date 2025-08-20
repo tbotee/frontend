@@ -28,9 +28,9 @@ export default function EmailDetail({ selectedEmail, loading, emails }) {
           <Divider />
         </Box>
         <Box sx={{ px: 3, pb: 3, overflowY: 'auto' }}>
-          <Typography variant="body1" paragraph style={{ whiteSpace: "pre-line" }}>
+          <Box component="div" sx={{ whiteSpace: "pre-line", typography: "body1" }}>
             {selectedEmail.body}
-          </Typography>
+          </Box>
         </Box>
       </Box>
     );
