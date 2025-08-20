@@ -14,7 +14,12 @@ export default function App({ Component, pageProps }) {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="sidebar">
-        
+        <Link href="/">
+          <EmailIcon />
+        </Link>
+        <Link href="/leads">
+          <AccountBox />
+        </Link>
       </div>
       <main>
         <Component {...pageProps} />

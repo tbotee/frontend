@@ -9,13 +9,19 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/openai": "^2.0.16",
+    "@ai-sdk/react": "^2.0.18",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.15.16",
     "@mui/material": "^5.15.16",
+    "@vercel/sdk": "^1.10.4",
+    "ai": "^5.0.18",
     "next": "14.2.3",
+    "openai": "^5.13.1",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "zod": "^4.0.17"
   },
   "devDependencies": {
     "eslint": "^8",
