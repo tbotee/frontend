@@ -1,6 +1,5 @@
 import { z } from 'zod';
 
-// Validation schemas
 const EmailSchema = z.object({
   to: z.string().email('To field must be a valid email address'),
   cc: z.string().optional(),
@@ -51,7 +50,6 @@ class EmailService {
   validateComposeData(composeData) {
     try {
       EmailSchema.parse(composeData);
-      
 
       if (composeData.cc && !this.validateEmailList(composeData.cc)) {
         throw new Error('CC must contain valid email addresses separated by commas');

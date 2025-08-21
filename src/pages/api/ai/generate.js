@@ -25,7 +25,7 @@ async function getEmail(message, assistant) {
     You are given a message and you need to write an email to the customer.
 
     Guidelines:
-    - Write a natural, flowing email (around 60-100 words total)
+    - Write a natural, flowing email (around 40 words total)
     - Use complete, well-formed sentences with proper grammar
     - Write in a professional, engaging tone
     - Include a clear subject line that summarizes the email
